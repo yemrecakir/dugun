@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+@theme {
+    --color-wedding-light: #fdfbf7;
+    --color-wedding-dark: #2c2c2c;
+    --color-wedding-accent: #c8b273;
+    --color-wedding-accent-hover: #b8a263;
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+}
+
+body {
+    background-color: var(--color-wedding-light);
+    color: var(--color-wedding-dark);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tab bar yatay scroll'da scrollbar gizle */
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+
+/* Responsive fotoğraf ızgarası */
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+@media (min-width: 768px) {
+    .photo-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .photo-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+    }
+}
+
+/* Skeleton loading shimmer */
+.skeleton-shimmer {
+    background: linear-gradient(
+        110deg,
+        #e8e4dc 0%,
+        #f5f1ea 40%,
+        #f5f1ea 60%,
+        #e8e4dc 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
