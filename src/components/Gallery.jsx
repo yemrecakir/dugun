@@ -29,7 +29,7 @@ const getDriveThumbnailUrl = (path) => {
 
 const getDriveVideoUrl = (path) => {
     if (isGoogleDriveId(path)) {
-        return `https://drive.google.com/file/d/${path}/preview`;
+        return `https://www.googleapis.com/drive/v3/files/${path}?alt=media&key=${GOOGLE_API_KEY}`;
     }
     return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
 };
@@ -245,20 +245,21 @@ export default function Gallery({ refreshTrigger }) {
                                 ✕ Kapat
                             </button>
 
-                            {isVideo(selectedMedia) ? (
-                                <iframe
-                                    src={getDriveVideoUrl(selectedMedia.image_path)}
-                                    className="w-full aspect-video rounded-xl"
-                                    allow="autoplay"
-                                    allowFullScreen
-                                />
-                            ) : (
-                                <img
-                                    src={getDriveImageUrl(selectedMedia.image_path)}
-                                    alt={`${selectedMedia.guest_name} tarafından çekildi`}
-                                    className="w-full max-h-[85vh] object-contain rounded-xl"
-                                />
-                            )}
+                             {isVideo(selectedMedia) ? (
+                                 <video
+                                     src={getDriveVideoUrl(selectedMedia.image_path)}
+                                     className="w-full max-h-[75vh] aspect-video rounded-xl shadow-2xl bg-black"
+                                     controls
+                                     autoPlay
+                                     playsInline
+                                 />
+                             ) : (
+                                 <img
+                                     src={getDriveImageUrl(selectedMedia.image_path)}
+                                     alt={`${selectedMedia.guest_name} tarafından çekildi`}
+                                     className="w-full max-h-[85vh] object-contain rounded-xl"
+                                 />
+                             )}
 
                             <p className="text-white/80 text-center mt-3 text-sm">
                                 {isVideo(selectedMedia) ? '🎬' : '📸'} {selectedMedia.guest_name}
