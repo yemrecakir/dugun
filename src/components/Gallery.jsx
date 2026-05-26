@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, User, Loader2, Play } from 'lucide-react';
+import { Users, User, Loader2, Play, Download } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
@@ -248,7 +248,7 @@ export default function Gallery({ refreshTrigger }) {
                              {isVideo(selectedMedia) ? (
                                  <video
                                      src={getDriveVideoUrl(selectedMedia.image_path)}
-                                     className="w-full max-h-[75vh] aspect-video rounded-xl shadow-2xl bg-black"
+                                     className="w-full max-h-[75vh] object-contain rounded-xl shadow-2xl bg-black"
                                      controls
                                      autoPlay
                                      playsInline
@@ -261,9 +261,21 @@ export default function Gallery({ refreshTrigger }) {
                                  />
                              )}
 
-                            <p className="text-white/80 text-center mt-3 text-sm">
-                                {isVideo(selectedMedia) ? '🎬' : '📸'} {selectedMedia.guest_name}
-                            </p>
+                             <div className="flex items-center justify-between mt-4 px-2">
+                                 <p className="text-white/80 text-sm font-medium">
+                                     {isVideo(selectedMedia) ? '🎬' : '📸'} {selectedMedia.guest_name}
+                                 </p>
+                                 <a
+                                     href={isVideo(selectedMedia) ? getDriveVideoUrl(selectedMedia.image_path) : getDriveImageUrl(selectedMedia.image_path)}
+                                     download={`${selectedMedia.guest_name || 'dugun'}-medya`}
+                                     target="_blank"
+                                     rel="noopener noreferrer"
+                                     className="flex items-center gap-1.5 px-4 py-2 bg-wedding-accent hover:bg-wedding-accent/90 text-white rounded-full text-xs font-semibold transition-all duration-300 shadow-md active:scale-95 cursor-pointer"
+                                 >
+                                     <Download size={14} />
+                                     Cihaza Kaydet
+                                 </a>
+                             </div>
                         </motion.div>
                     </motion.div>
                 )}
