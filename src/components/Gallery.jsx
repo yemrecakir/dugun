@@ -22,9 +22,7 @@ const getDriveImageUrl = (path) => {
 
 const getDriveThumbnailUrl = (path) => {
     if (isGoogleDriveId(path)) {
-        // Google CDN üzerinden otomatik 400px genişliğinde sıkıştırılmış thumbnail yükle.
-        // Bu sayede 1000 fotoğraf bile olsa sayfa kasmaz, internet paketi harcamaz!
-        return `https://lh3.googleusercontent.com/d/${path}=w400`;
+        return `https://www.googleapis.com/drive/v3/files/${path}?alt=media&key=${GOOGLE_API_KEY}`;
     }
     return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
 };
