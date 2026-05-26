@@ -4,11 +4,35 @@ import { Users, User, Loader2, Play } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
-// Google Drive URL helpers - Resmi API'yi kullanıyoruz (Cookie engeline takılmaz)
-const getDriveImageUrl = (fileId) => `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
-const getDriveVideoUrl = (fileId) => `https://drive.google.com/file/d/${fileId}/preview`; 
-const getDriveThumbnailUrl = (fileId) => `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
+// Path'in Google Drive ID mi yoksa eski Supabase Storage yolu mu olduğunu kontrol et
+const isGoogleDriveId = (path) => {
+    if (!path) return false;
+    return !path.includes('/');
+};
+
+// URL helpers - Hem Google Drive hem de eski Supabase Storage dosyalarını destekler
+const getDriveImageUrl = (path) => {
+    if (isGoogleDriveId(path)) {
+        return `https://www.googleapis.com/drive/v3/files/${path}?alt=media&key=${GOOGLE_API_KEY}`;
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+};
+
+const getDriveThumbnailUrl = (path) => {
+    if (isGoogleDriveId(path)) {
+        return `https://www.googleapis.com/drive/v3/files/${path}?alt=media&key=${GOOGLE_API_KEY}`;
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+};
+
+const getDriveVideoUrl = (path) => {
+    if (isGoogleDriveId(path)) {
+        return `https://drive.google.com/file/d/${path}/preview`;
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/photos/${path}`;
+};
 
 export default function Gallery({ refreshTrigger }) {
     const [photos, setPhotos] = useState([]);
