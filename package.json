@@ -3,7 +3,7 @@
     "private": true,
     "version": "1.0.0",
     "type": "module",
-    "homepage": "https://<github-kullanici-adin>.github.io/<repo-adini-buraya-yaz>",
+    "homepage": "https://yemrecakir.github.io/dugun",
     "scripts": {
         "predeploy": "npm run build",
         "deploy": "gh-pages -d dist",

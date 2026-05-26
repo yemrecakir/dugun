@@ -1,13 +1,21 @@
 import { useEffect, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, User, Loader2 } from 'lucide-react';
+import { Users, User, Loader2, Play } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+
+const GOOGLE_API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
+
+// Google Drive URL helpers - Resmi API'yi kullanıyoruz (Cookie engeline takılmaz)
+const getDriveImageUrl = (fileId) => `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
+const getDriveVideoUrl = (fileId) => `https://drive.google.com/file/d/${fileId}/preview`; 
+const getDriveThumbnailUrl = (fileId) => `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${GOOGLE_API_KEY}`;
 
 export default function Gallery({ refreshTrigger }) {
     const [photos, setPhotos] = useState([]);
     const [activeTab, setActiveTab] = useState('all');
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
+    const [selectedMedia, setSelectedMedia] = useState(null);
 
     useEffect(() => {
         fetchPhotos(true);
@@ -58,9 +66,7 @@ export default function Gallery({ refreshTrigger }) {
         return photos.filter((p) => p.guest_name === activeTab);
     }, [photos, activeTab]);
 
-    const getImageUrl = (path) => {
-        return supabase.storage.from('wedding-album').getPublicUrl(path).data.publicUrl;
-    };
+    const isVideo = (photo) => photo.media_type === 'video';
 
     // Skeleton loading kartları
     const SkeletonGrid = () => (
@@ -90,7 +96,7 @@ export default function Gallery({ refreshTrigger }) {
                         }`}
                     >
                         <Users size={15} />
-                        Tüm Fotoğraflar
+                        Tüm Medyalar
                         <span className={`ml-1 text-xs px-1.5 py-0.5 rounded-full ${
                             activeTab === 'all'
                                 ? 'bg-white/20 text-white'
@@ -138,12 +144,12 @@ export default function Gallery({ refreshTrigger }) {
                         className="flex items-center justify-center gap-2 mb-4 py-2 px-4 bg-wedding-accent/10 rounded-full text-wedding-accent text-sm font-medium"
                     >
                         <Loader2 size={16} className="animate-spin" />
-                        Fotoğraflar güncelleniyor...
+                        Güncelleniyor...
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Fotoğraf Galerisi */}
+            {/* Fotoğraf/Video Galerisi */}
             {isLoading ? (
                 <SkeletonGrid />
             ) : filteredPhotos.length === 0 ? (
@@ -161,22 +167,82 @@ export default function Gallery({ refreshTrigger }) {
                                 exit={{ opacity: 0, scale: 0.9 }}
                                 transition={{ duration: 0.3 }}
                                 key={photo.id}
-                                className="relative group overflow-hidden rounded-xl"
+                                className="relative group overflow-hidden rounded-xl cursor-pointer"
+                                onClick={() => setSelectedMedia(photo)}
                             >
-                                <img
-                                    src={getImageUrl(photo.image_path)}
-                                    alt={`${photo.guest_name} tarafından çekildi`}
-                                    className="w-full aspect-square object-cover hover:scale-105 transition-transform duration-500"
-                                    loading="lazy"
-                                />
+                                {isVideo(photo) ? (
+                                    <div className="w-full aspect-square bg-gradient-to-br from-wedding-accent/20 to-wedding-dark/30 flex items-center justify-center relative group-hover:scale-105 transition-transform duration-500">
+                                        <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px]" />
+                                        <div className="w-14 h-14 bg-white/30 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg border border-white/20 z-10">
+                                            <Play size={28} className="text-white ml-1" fill="white" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <img
+                                        src={getDriveThumbnailUrl(photo.image_path)}
+                                        alt={`${photo.guest_name} tarafından çekildi`}
+                                        className="w-full aspect-square object-cover hover:scale-105 transition-transform duration-500"
+                                        loading="lazy"
+                                    />
+                                )}
                                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3 rounded-b-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    <p className="text-white text-sm">📸 {photo.guest_name}</p>
+                                    <p className="text-white text-sm">
+                                        {isVideo(photo) ? '🎬' : '📸'} {photo.guest_name}
+                                    </p>
                                 </div>
                             </motion.div>
                         ))}
                     </AnimatePresence>
                 </div>
             )}
+
+            {/* Lightbox / Büyük Görüntüleme */}
+            <AnimatePresence>
+                {selectedMedia && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+                        onClick={() => setSelectedMedia(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.8 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.8 }}
+                            className="relative max-w-4xl max-h-[90vh] w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {/* Kapatma butonu */}
+                            <button
+                                onClick={() => setSelectedMedia(null)}
+                                className="absolute -top-10 right-0 text-white/70 hover:text-white text-sm cursor-pointer"
+                            >
+                                ✕ Kapat
+                            </button>
+
+                            {isVideo(selectedMedia) ? (
+                                <iframe
+                                    src={getDriveVideoUrl(selectedMedia.image_path)}
+                                    className="w-full aspect-video rounded-xl"
+                                    allow="autoplay"
+                                    allowFullScreen
+                                />
+                            ) : (
+                                <img
+                                    src={getDriveImageUrl(selectedMedia.image_path)}
+                                    alt={`${selectedMedia.guest_name} tarafından çekildi`}
+                                    className="w-full max-h-[85vh] object-contain rounded-xl"
+                                />
+                            )}
+
+                            <p className="text-white/80 text-center mt-3 text-sm">
+                                {isVideo(selectedMedia) ? '🎬' : '📸'} {selectedMedia.guest_name}
+                            </p>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
